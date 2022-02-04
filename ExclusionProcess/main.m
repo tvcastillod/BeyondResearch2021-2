@@ -1,27 +1,37 @@
 tic
 
-n = 1;         % number of particles
-dt_ = 10;      
-lambda = 0.5;  % parameter for exponential jumps
-dt = 1;        % delta time
+% simulation of Exclusion Process
+
+rng(8)
+
+jt = 10;       % jump time for simulation of 1 delta
+beta = 0.5;    % parameter for exponential jumps [Continuous Time]
+dt = 0.1;      % delta time for simulation
+
+rng(8) % seed
 
 t = 1200;
-m = 150;  % space size
-N = 50;   % number of particles in space
-n = 150;   % number of iterations
-deltas = [0];
-titulo = 't = ' + string(t) + ', N = ' + string(N) + ', delta = ' + string(deltas(1));
+m = 150;      % space size
+N = 100;      % number of iterations
+deltas = [0 0.15 0.2 0.3 0.35 0.4];
 
-shuffle = @(v)v(randperm(numel(v)));
 % initial state of particles
-particleSpace = shuffle([zeros(1,m-N) ones(1,N)]);
+x = rand(1,m);
+for n = 1:m
+    if x(n) > 0.5
+        x(n) = 1; 
+    else 
+        x(n) = 0;
+    end
+end
+particleSpace = x;
 
-timeRange = 10:dt_:t;
-avg = zeros(1,t/dt_);
+timeRange = 10:jt:t;
+avg = zeros(1,t/jt);
 
 allDataPos = {};
 
-varData = zeros(size(deltas,2),round(t/dt_));
+varData = zeros(size(deltas,2),round(t/jt));
 subvar = zeros(1,N);
 posData = {};
 
@@ -32,13 +42,12 @@ for delta = deltas
     % generate a fixed random environment 
     randomSpace = unifrnd(-delta,delta,[1,size(particleSpace,2)]);
     for t_ = timeRange
+        if (mod(t_,100)==0)
+            disp(t_)
+        end
         % simulation
-        t_
-        for nt = 1:n
-            last = simulate2(lambda, particleSpace, randomSpace, t_, dt);
-            %ls = cell2mat(x);
-            %last = (ls(end));
-
+        for nt = 1:N
+            last = simulateC(beta,particleSpace, randomSpace, t_, dt);
             subvar(nt) = last; % last particle position
         end
         media = sum(subvar) / N;
@@ -50,18 +59,14 @@ for delta = deltas
 end
 disp('out')
 
-%docData = varData;
-%xlswrite('dataVAR.xlsx',docData);
+docData = varData;
+xlswrite('dataVar.xlsx',docData); % save data on xls file
 
 % graph
-figure
-x_ = timeRange;
-
-plot(x_,varData(1,:),'or','MarkerSize',1,'LineWidth',1) % variance (X-X')^2/N
-hold on
-
-title(titulo)
-
-xlim([0,t])
+% figure
+% x_ = timeRange;
+% plot(x_,varData(1,:),'or','MarkerSize',1,'LineWidth',1) % variance (X-X')^2/N
+% title('t = ' + string(t) + ', N = ' + string(N) + ', delta = 0 0.15 0.25 0.3 0.4 0.45')
+% xlim([0,t])
 
 toc

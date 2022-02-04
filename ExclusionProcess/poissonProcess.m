@@ -1,10 +1,9 @@
-function waitingTime = poissonProcess(t, lambda)
-    %particleJumpTime = poissonProcess(t,lambda);
-
-    event = exprnd(lambda); % random exponential
+function waitingTime = poissonProcess(t, beta)
+    % associate exponential times to move a particle
+    event = exprnd(beta); % random exponential
     time = [event];
     while (event < t)
-        event = event + exprnd(lambda, 1);
+        event = event + exprnd(beta, 1);
         if (event < t)
             time = [time event];
         end
